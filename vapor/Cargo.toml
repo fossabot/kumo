@@ -1,0 +1,17 @@
+[package]
+name = "vapor"
+version = "0.1.0"
+authors = ["Darwin D Wu <wuddarwin@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rusoto_core = "0.38"
+rusoto_ec2 = "0.38"
+
+actix-rt = "0.2"
+actix-web = "1.0.0-beta.2"
+actix-files = "0.1.0-betsa.1"
+env_logger = "0.6"
+futures = "0.1"
+
+serde = "1.0"

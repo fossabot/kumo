@@ -5,6 +5,7 @@ workflows:
   build:
     jobs:
       - build_sky
+      - build_vapor
 
 jobs:
   build_sky:
@@ -38,6 +39,41 @@ jobs:
           command: cargo test
       - save_cache:
           key: sky-{{ checksum "Cargo.lock" }}
+          paths:
+            - "~/.cargo"
+            - "./target"
+
+  build_vapor:
+    working_directory: ~/repo/vapor
+    docker:
+      - image: circleci/rust:1.34.1
+    steps:
+      - checkout:
+          path: ~/repo
+      - restore_cache:
+          keys:
+            - vapor-{{ checksum "Cargo.lock" }}
+            - vapor-
+      - run:
+          name: Version information
+          command: |
+            rustc --version
+            cargo --version
+            rustup --version
+      - run:
+          name: Check formatting
+          command: |
+            rustup component add rustfmt --toolchain 1.34.1-x86_64-unknown-linux-gnu
+            echo rustfmt vesion: $(rustfmt --version)
+            cargo fmt --all -- --check
+      - run:
+          name: Build
+          command: cargo build
+      - run:
+          name: Test
+          command: cargo test
+      - save_cache:
+          key: vapor-{{ checksum "Cargo.lock" }}
           paths:
             - "~/.cargo"
             - "./target"
