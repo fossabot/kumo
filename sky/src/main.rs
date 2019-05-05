@@ -42,11 +42,11 @@ fn main() -> std::io::Result<()> {
 #[template(path = "index.html")]
 struct Index;
 
-fn index(req: HttpRequest) -> Result<HttpResponse> {
+fn index(req: HttpRequest) -> HttpResponse {
     println!("{:?}", req);
     let body = Index.render().unwrap();
 
-    Ok(HttpResponse::Ok().content_type("text/html").body(body))
+    HttpResponse::Ok().content_type("text/html").body(body)
 }
 
 // favicon handler
@@ -63,7 +63,7 @@ struct NotFoundTemplate<'a> {
 }
 
 // 404 not found handler
-fn not_found(req: HttpRequest) -> Result<HttpResponse> {
+fn not_found(req: HttpRequest) -> HttpResponse {
     println!("{:?}", req);
 
     let body = NotFoundTemplate {
@@ -72,7 +72,30 @@ fn not_found(req: HttpRequest) -> Result<HttpResponse> {
     .render()
     .unwrap();
 
-    Ok(HttpResponse::NotFound()
+    HttpResponse::NotFound()
         .content_type("text/html")
-        .body(body))
+        .body(body)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::{http, test};
+    use futures::future::IntoFuture;
+
+    #[test]
+    fn test_index() {
+        let req = test::TestRequest::get().uri("/").to_http_request();
+        let resp = test::block_on(index(req).into_future()).unwrap();
+
+        assert_eq!(resp.status(), http::StatusCode::OK);
+    }
+
+    #[test]
+    fn test_404() {
+        let req = test::TestRequest::get().uri("dont_exist").to_http_request();
+        let resp = test::block_on(not_found(req).into_future()).unwrap();
+
+        assert_eq!(resp.status(), http::StatusCode::NOT_FOUND);
+    }
 }
