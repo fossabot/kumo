@@ -8,6 +8,8 @@ use actix_files as fs;
 use actix_web::{guard, web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use askama::Template;
 
+mod proto;
+
 fn main() -> std::io::Result<()> {
     env::set_var("RUST_LOG", "actix_web=debug");
     env_logger::init();

@@ -1,39 +1,89 @@
-extern crate rusoto_core;
-extern crate rusoto_ec2;
+extern crate bytes;
+extern crate env_logger;
+extern crate futures;
+#[macro_use]
+extern crate log;
+extern crate prost;
+extern crate tokio;
+extern crate tower_grpc;
+extern crate tower_hyper;
+
+pub mod compute {
+    include!(concat!(env!("OUT_DIR"), "/compute.rs"));
+}
 
 use std::env;
+
+use compute::{server, Compute, ComputeListRequest, ComputeListResponse};
+
+use futures::{future, Future, Stream};
+use tokio::executor::DefaultExecutor;
+use tokio::net::TcpListener;
+use tower_grpc::{Request, Response};
+use tower_hyper::server::{Http, Server};
+
+extern crate rusoto_core;
+extern crate rusoto_ec2;
 
 use rusoto_core::Region;
 use rusoto_ec2::{DescribeInstancesRequest, Ec2, Ec2Client, Filter, Reservation};
 
-use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer};
+#[derive(Clone, Debug)]
+struct Service;
 
-use serde::{Deserialize, Serialize};
+impl server::ComputeService for Service {
+    type ListFuture = future::FutureResult<Response<ComputeListResponse>, tower_grpc::Status>;
 
-fn main() -> std::io::Result<()> {
-    env::set_var("RUST_LOG", "actix_web=debug");
-    env_logger::init();
+    fn list(&mut self, request: Request<ComputeListRequest>) -> Self::ListFuture {
+        println!("REQUEST = {:?}", request);
 
-    let sys = actix_rt::System::new("vapor");
+        let response = Response::new(ComputeListResponse {
+            computes: list_computes(),
+        });
 
-    HttpServer::new(move || {
-        // start http server
-        App::new().service(web::resource("/").route(web::get().to(index)))
-    })
-    .bind("127.0.0.1:8081")?
-    .start();
-
-    println!("Starting vapor server on 127.0.0.1:8081");
-    sys.run()
+        future::ok(response)
+    }
 }
 
-fn index(_req: HttpRequest) -> HttpResponse {
-    let computes = list_computes();
+pub fn main() {
+    let _ = ::env_logger::init();
 
-    HttpResponse::Ok().json(computes)
+    let port;
+    match env::var("PORT") {
+        Ok(val) => port = val,
+        Err(_) => port = "10100".to_string(),
+    }
+
+    let new_service = server::ComputeServiceServer::new(Service);
+
+    let mut server = Server::new(new_service);
+
+    let http = Http::new()
+        .http2_only(true)
+        .executor(DefaultExecutor::current())
+        .clone();
+
+    let addr = &format!("[::1]:{}", port).parse().unwrap();
+    let bind = TcpListener::bind(&addr).expect("bind");
+
+    let serve = bind
+        .incoming()
+        .for_each(move |sock| {
+            if let Err(e) = sock.set_nodelay(true) {
+                return Err(e);
+            }
+
+            let serve = server.serve_with(sock, http.clone());
+            tokio::spawn(serve.map_err(|e| error!("h2 error: {:?}", e)));
+
+            Ok(())
+        })
+        .map_err(|e| eprintln!("accept error: {}", e));
+
+    tokio::run(serve)
 }
 
-fn list_computes() -> Vec<Compute> {
+pub fn list_computes() -> Vec<Compute> {
     let client = Ec2Client::new(Region::UsWest2);
 
     let input = ec2_describe_input();
@@ -57,7 +107,7 @@ fn list_computes() -> Vec<Compute> {
 }
 
 // https://rusoto.github.io/rusoto/rusoto_ec2/struct.DescribeInstancesRequest.html
-fn ec2_describe_input() -> DescribeInstancesRequest {
+pub fn ec2_describe_input() -> DescribeInstancesRequest {
     let dry_run = Some(false);
     let filters = Some(vec![
         // https://rusoto.github.io/rusoto/rusoto_ec2/struct.Filter.html
@@ -79,25 +129,19 @@ fn ec2_describe_input() -> DescribeInstancesRequest {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Compute {
-    id: String,
-    compute_type: String,
-}
-
 // https://rusoto.github.io/rusoto/rusoto_ec2/struct.DescribeInstancesResult.html
 // https://rusoto.github.io/rusoto/rusoto_ec2/struct.Instance.html
-fn normalize_reservations(
+pub fn normalize_reservations(
     reservations: Vec<Reservation>,
     mut result: Vec<Compute>,
 ) -> Vec<Compute> {
     for rev in reservations {
         let computes = rev.instances.unwrap();
 
-        for compute in computes {
+        for comp in computes {
             result.push(Compute {
-                id: compute.instance_id.unwrap(),
-                compute_type: compute.instance_type.unwrap(),
+                id: comp.instance_id.unwrap(),
+                compute_type: comp.instance_type.unwrap(),
             });
         }
     }

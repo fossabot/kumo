@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package compute;
+
+service ComputeService {
+  rpc list (ComputeListRequest) returns (ComputeListResponse);
+}
+
+message Compute {
+  string id = 1;
+  string compute_type = 2;
+}
+
+message ComputeListRequest {
+}
+
+message ComputeListResponse {
+  repeated Compute computes = 1;
+}
