@@ -3,7 +3,7 @@ syntax = "proto3";
 package compute;
 
 service ComputeService {
-  rpc list (ComputeListRequest) returns (ComputeListResponse);
+  rpc List (ComputeListRequest) returns (ComputeListResponse);
 }
 
 message Compute {

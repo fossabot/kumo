@@ -63,8 +63,9 @@ pub fn main() {
         .executor(DefaultExecutor::current())
         .clone();
 
-    let addr = &format!("[::1]:{}", port).parse().unwrap();
+    let addr = &format!("[::]:{}", port).parse().unwrap();
     let bind = TcpListener::bind(&addr).expect("bind");
+    println!("Listening on http://{}", addr);
 
     let serve = bind
         .incoming()

@@ -11,37 +11,28 @@ jobs:
   build_sky:
     working_directory: ~/repo/sky
     docker:
-      - image: circleci/rust:1.34.1
+      - image: circleci/golang:1.12.5
     steps:
       - checkout:
           path: ~/repo
       - restore_cache:
           keys:
-            - sky-{{ checksum "Cargo.lock" }}
+            - sky-{{ checksum "go.sum" }}
             - sky-
       - run:
           name: Version information
           command: |
-            rustc --version
-            cargo --version
-            rustup --version
-      - run:
-          name: Check formatting
-          command: |
-            rustup component add rustfmt --toolchain 1.34.1-x86_64-unknown-linux-gnu
-            echo rustfmt vesion: $(rustfmt --version)
-            cargo fmt --all -- --check
+            go version
       - run:
           name: Build
-          command: cargo build
+          command: go build
       - run:
           name: Test
-          command: cargo test
+          command: go test
       - save_cache:
-          key: sky-{{ checksum "Cargo.lock" }}
+          key: sky-{{ checksum "go.sum" }}
           paths:
-            - "~/.cargo"
-            - "./target"
+            - "./vendor"
 
   build_vapor:
     working_directory: ~/repo/vapor

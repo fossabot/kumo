@@ -10,9 +10,6 @@ name = "client"
 path = "src/test/client.rs"
 
 [dependencies]
-rusoto_core = "0.38"
-rusoto_ec2 = "0.38"
-
 futures = "0.1"
 bytes = "0.4"
 env_logger = "0.6"
@@ -28,6 +25,10 @@ tower-hyper = { git = "https://github.com/tower-rs/tower-hyper" }
 tower-service = "0.2"
 tower-util = "0.1"
 tower-grpc = { git = "https://github.com/tower-rs/tower-grpc.git", default-features = false, features = ["protobuf", "tower-hyper"] }
+
+# AWS
+rusoto_core = "0.38"
+rusoto_ec2 = "0.38"
 
 [build-dependencies]
 tower-grpc-build = { git = "https://github.com/tower-rs/tower-grpc.git", features = ["tower-hyper"] }
