@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/foolin/goview/supports/ginview"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 
@@ -29,20 +30,26 @@ func main() {
 
 	client := pb.NewComputeServiceClient(conn)
 
-	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
+	router := gin.Default()
+	router.HTMLRender = ginview.Default()
+
+	router.GET("/", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		result, err := client.List(ctx, &pb.ComputeListRequest{})
+		response, err := client.List(ctx, &pb.ComputeListRequest{})
 		if err != nil {
 			log.Fatalf("%v.ComputeListRequest(_) = _, %v", client, err)
 		}
 
-		log.Printf("result: %v", result)
+		computes := response.GetComputes()
 
-		c.JSON(http.StatusOK, gin.H{"message": "pong"})
+		//render with master
+		c.HTML(http.StatusOK, "index", gin.H{
+			"title":    "Home",
+			"computes": computes,
+		})
 	})
 
 	// Listen and Server in 0.0.0.0:8080
-	r.Run(":8080")
+	router.Run(":8080")
 }

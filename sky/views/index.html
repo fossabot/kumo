@@ -1,0 +1,13 @@
+{{ define "content" }}
+<div id="content" class="container">
+    <h1>Hello world!</h1>
+
+    <ul>
+        {{ range $_, $compute := $.computes }}
+        {{ with $compute }}
+        <li>{{ .GetId }}: {{ .GetComputeType }}</li>
+        {{ end }}
+        {{ end }}
+    </ul>
+</div>
+{{ end }}
