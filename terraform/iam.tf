@@ -1,22 +1,3 @@
-# Policy
-data "aws_iam_policy_document" "ec2readonly" {
-  statement {
-    actions = [
-      "ec2:DescribeInstances",
-      "ec2:DescribeImages",
-      "ec2:DescribeTags",
-      "ec2:DescribeSnapshots",
-    ]
-
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "ec2readonly" {
-  name   = "ec2readonly"
-  policy = "${data.aws_iam_policy_document.ec2readonly.json}"
-}
-
 # Role
 data "aws_iam_policy_document" "sts" {
   statement {
@@ -34,14 +15,31 @@ data "aws_iam_policy_document" "sts" {
   }
 }
 
-resource "aws_iam_role" "ec2readonly" {
-  name        = "ec2readonly"
-  description = "Readonly access to EC2"
+resource "aws_iam_role" "kumo" {
+  name        = "kumo"
+  description = "AWS monitoring"
 
-  assume_role_policy = "${data.aws_iam_policy_document.ec2readonly.json}"
+  assume_role_policy = "${data.aws_iam_policy_document.sts.json}"
 }
 
+# Policy
+data "aws_iam_policy_document" "ec2readonly" {
+  statement {
+    actions = [
+      "ec2:Describe*",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "ec2readonly" {
+  name   = "ec2readonly"
+  policy = "${data.aws_iam_policy_document.ec2readonly.json}"
+}
+
+# Attachments
 resource "aws_iam_role_policy_attachment" "readonly" {
-  role       = "${aws_iam_role.ec2readonly.name}"
+  role       = "${aws_iam_role.kumo.name}"
   policy_arn = "${aws_iam_policy.ec2readonly.arn}"
 }

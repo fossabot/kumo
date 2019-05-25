@@ -11,7 +11,7 @@ spec:
           image: docker.io/darwin67/sky:latest
           imagePullPolicy: IfNotPresent
           command:
-            - /usr/bin/sky
+            - /app/sky
             - --port=$(PORT)
             - --vapor-addr=$(VAPOR)
           ports:
