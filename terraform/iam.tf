@@ -22,12 +22,12 @@ data "aws_iam_policy_document" "sts" {
   statement {
     actions = ["sts:AssumeRole"]
 
-    principles {
+    principals {
       type        = "Service"
       identifiers = ["ec2.amazonaws.com"]
     }
 
-    principles {
+    principals {
       type        = "AWS"
       identifiers = ["${var.iam_sts_roles}"]
     }
