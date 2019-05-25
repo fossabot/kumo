@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -15,17 +16,18 @@ import (
 )
 
 var (
-	serverAddr = flag.String("server_addr", "127.0.0.1:10100", "The server address in the format of host:port")
+	port      = flag.String("port", "8080", "The port that sky will listen for HTTP requests")
+	vaporAddr = flag.String("vapor-addr", "127.0.0.1:10100", "The server address in the format of host:port")
 )
 
 func main() {
 	flag.Parse()
 
-	conn, err := grpc.Dial(*serverAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(*vaporAddr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("fail to dial: %v", err)
 	}
-	log.Printf("successfully connected to vapor at %s", *serverAddr)
+	log.Printf("successfully connected to vapor at %s", *vaporAddr)
 	defer conn.Close()
 
 	client := pb.NewComputeServiceClient(conn)
@@ -51,5 +53,7 @@ func main() {
 	})
 
 	// Listen and Server in 0.0.0.0:8080
-	router.Run(":8080")
+	log.Printf("Listening on :%s", *port)
+	addr := fmt.Sprintf(":%s", *port)
+	router.Run(addr)
 }

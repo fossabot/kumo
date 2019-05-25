@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vapor
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: vapor
+          image: docker.io/darwin67/vapor:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: grpc
+              containerPort: 10100
+          env:
+            - name: PORT
+              value: "10100"

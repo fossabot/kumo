@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sky
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: sky
+          image: docker.io/darwin67/sky:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/bin/sky
+            - --port=$(PORT)
+            - --vapor-addr=$(VAPOR)
+          ports:
+            - name: tcp
+              containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: GIN_MODE
+              value: release
+            - name: VAPOR
+              value: vapor:10100
