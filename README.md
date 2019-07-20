@@ -1,4 +1,5 @@
 [![CircleCI](https://circleci.com/gh/darwin67/kumo/tree/master.svg?style=svg)](https://circleci.com/gh/darwin67/kumo/tree/master)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fdarwin67%2Fkumo.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fdarwin67%2Fkumo?ref=badge_shield)
 
 # 雲 (kumo)
 
@@ -13,3 +14,7 @@ This is a personal project to create a microservice architected cloud monitoring
 
 [sky]: /sky
 [vapor]: /vapor
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fdarwin67%2Fkumo.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fdarwin67%2Fkumo?ref=badge_large)
